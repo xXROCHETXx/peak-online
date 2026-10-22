@@ -1,4 +1,5 @@
 name: Publicar PEAK en GitHub Pages
+# Publish only the static launcher. Each host runs the Windows Release package.
 on:
   push:
     branches: [main]
