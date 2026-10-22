@@ -1,4 +1,4 @@
-import { parseInvitation, gameUrl } from './connection.mjs';
+import { parseInvitation, gameUrl, normalizeRoom } from './connection.mjs';
 const frame = document.getElementById('peak-game');
 const status = document.getElementById('boot-status');
 const error = document.getElementById('entry-error');
@@ -8,6 +8,7 @@ try {
   const target = fields.has('server')
     ? gameUrl(parseInvitation(location.href, '', allowLocal), new URL('./index.html', location.href))
     : new URL('./game.html', location.href);
+  if (!fields.has('server') && fields.has('room')) target.hash = new URLSearchParams({ room: normalizeRoom(fields.get('room')) }).toString();
   frame.addEventListener('load', () => { status.hidden = true; });
   frame.src = target.href;
 } catch (failure) {

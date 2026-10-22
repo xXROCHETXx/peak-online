@@ -1,4 +1,4 @@
-name: Publicar PEAK en GitHub Pages
+name: Publish PEAK to GitHub Pages
 # Publish the browser client. Original game data is fetched from the upstream CDN.
 on:
   push:

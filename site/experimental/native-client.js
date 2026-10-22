@@ -17,9 +17,9 @@
       launchesGame: !roomsOnly,
       repairMenu() {
         const gameObject = call(70405, string('Button_PlayWithFriends'), 0);
-        if (!gameObject) return 'Host Game no se encontró en la escena activa.';
+        if (!gameObject) return 'Host Game was not found in the active scene.';
         call(5399, gameObject, 0, 0);
-        return 'Host Game original sustituido por el botón del panel web.';
+        return 'The web room button replaces the native Host Game button.';
       },
       connect(nickname) {
         if (call(39597, 0)) call(39598, 0, 0);
@@ -38,19 +38,19 @@
         call(39589, 0, 0); call(39575, string('peak-selfhost-1'), 0);
         call(39600, 1, 0); call(39594, string(nickname), 0);
         window.peakSocketBridge.configure({ allowRemote: true, sameOrigin: true });
-        if (!call(39646, config, 0, 0)) throw new Error('PEAK rechazó la conexión.');
+        if (!call(39646, config, 0, 0)) throw new Error('PEAK rejected the connection.');
       },
       requestRoom(kind, code) {
         if (roomsOnly) {
           const accepted = kind === 'create' ? call(39664, string(code), 0, 0, 0, 0) : call(39666, string(code), 0, 0);
-          if (!accepted) throw new Error('No se pudo enviar la solicitud de sala.');
+          if (!accepted) throw new Error('Could not send the room request.');
         } else {
           const method = kind === 'create' ? 10515056 : 10515064;
           module.asm.PeakProbe_MetadataInit(10537496);
           module.asm.PeakProbe_MetadataInit(method);
           const service = call(9295, pointer(10537496));
           const nextState = call(240063, pointer(service + 8), 1, pointer(method));
-          if (!nextState) throw new Error('El estado de conexión de PEAK no está inicializado.');
+          if (!nextState) throw new Error('The PEAK connection state is not initialized.');
           write(nextState + 16, string(code));
           if (kind === 'join') write(nextState + 20, string(''));
           client.needsReload = true;
@@ -68,7 +68,7 @@
           room: room ? { code: read(call(39320, room, 0)), count: call(39330, room, 0), isHost: !!call(9007, 0) } : null
         };
       },
-      disconnect() { call(39650, 0); },
+      disconnect() { call(39650, 0); queueMicrotask(() => window.peakBrowserTransport?.close()); },
       abort() { window.peakSocketBridge.abortAll(); }
     };
     return client;

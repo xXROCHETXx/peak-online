@@ -30,12 +30,13 @@
         setState(entry.module, self, 0);
       }
       connections.clear();
+      window.peakBrowserTransport?.close();
     },
     connect(module, self) {
       try {
         if (connections.has(self)) return 0;
         const server = readString(module, pointer(module, self + 28));
-        if (!allowRemote && !['127.0.0.1', 'localhost', '::1'].includes(server)) throw new Error('Configura primero tu aplicación Photon para usar un servidor remoto.');
+        if (!allowRemote && !['127.0.0.1', 'localhost', '::1'].includes(server)) throw new Error('Configure a game transport before connecting to a remote host.');
         const port = pointer(module, self + 36);
         const scheme = module.HEAPU8[self + 12] === 5 ? 'wss' : 'ws';
         const path = readString(module, pointer(module, self + 48));
@@ -54,18 +55,20 @@
           url = address.href;
         }
         const protocol = readString(module, table.get(38126)(self, 0));
-        const socket = new WebSocket(url, protocol || 'GpBinaryV18');
+        const socket = window.peakBrowserTransport
+          ? window.peakBrowserTransport.socket(url, protocol || 'GpBinaryV18')
+          : new WebSocket(url, protocol || 'GpBinaryV18');
         socket.binaryType = 'arraybuffer';
         const entry = { socket, module, closing: false, opened: false, received: 0, sent: 0 };
         connections.set(self, entry);
-        log('Socket del navegador creado: ' + url.replace(/[?].*$/, '?…') + '; protocolo ' + protocol);
+        log('Browser socket created: ' + url.replace(/[?].*$/, '?…') + '; protocol ' + protocol);
         socket.addEventListener('open', () => {
           if (entry.closing || connections.get(self) !== entry) return;
           entry.opened = true;
           setState(module, self, 2);
-          log('WebSocket abierto; notificando al peer de Photon.');
+          log('Game socket opened; notifying Photon.');
           try { module.asm.PeakProbe_PeerOnConnect(pointer(module, self + 8), 0); }
-          catch (error) { log('Error en OnConnect: ' + error); }
+          catch (error) { log('OnConnect error: ' + error); }
         });
         socket.addEventListener('message', event => {
           if (entry.closing || connections.get(self) !== entry || !(event.data instanceof ArrayBuffer)) return;
@@ -73,7 +76,7 @@
             const bytes = new Uint8Array(event.data);
             module.asm.PeakProbe_MetadataInit(10434004);
             const array = module.asm.PeakProbe_NewArray(pointer(module, 10434004), bytes.length);
-            if (!array || pointer(module, array + 12) !== bytes.length) throw new Error('No se pudo crear el buffer administrado.');
+            if (!array || pointer(module, array + 12) !== bytes.length) throw new Error('Could not allocate the managed packet buffer.');
             module.HEAPU8.set(bytes, array + 16);
             module.asm.PeakProbe_Receive(self, array, bytes.length, 0, 0);
             window.peakVoiceBridge?.onSocketPacket?.(module, client);
@@ -85,25 +88,25 @@
             }
             entry.received++;
             if (entry.received <= 3 || entry.received % 200 === 0)
-              log('Paquete recibido y entregado a Photon: ' + bytes.length + ' bytes; total=' + entry.received);
-          } catch (error) { log('Error de recepción: ' + error); }
+              log('Packet received and delivered to Photon: ' + bytes.length + ' bytes; total=' + entry.received);
+          } catch (error) { log('Receive error: ' + error); }
         });
-        socket.addEventListener('error', () => log('Error del WebSocket del navegador.'));
+        socket.addEventListener('error', () => log('Browser game socket error.'));
         socket.addEventListener('close', event => {
           if (connections.get(self) === entry) {
             connections.delete(self);
             setState(module, self, 0);
           }
-          log('WebSocket cerrado (' + event.code + '); enviados=' + entry.sent + ', recibidos=' + entry.received);
+          log('Game socket closed (' + event.code + '); sent=' + entry.sent + ', received=' + entry.received);
           if (!entry.closing) {
             try { module.asm.PeakProbe_SocketError(self, entry.opened ? 1026 : 1023, 0); }
-            catch (error) { log('Error al notificar desconexión: ' + error); }
+            catch (error) { log('Disconnection notification error: ' + error); }
           }
         });
         return 1;
       } catch (error) {
         setState(module, self, 0);
-        log('No se pudo conectar: ' + error);
+        log('Could not connect: ' + error);
         return 0;
       }
     },
@@ -123,10 +126,10 @@
       try {
         entry.socket.send(module.HEAPU8.slice(buffer, buffer + length));
         entry.sent++;
-        if (entry.sent <= 3) log('Paquete Photon enviado: ' + length + ' bytes.');
+        if (entry.sent <= 3) log('Photon packet sent: ' + length + ' bytes.');
         return 0;
       } catch (error) {
-        log('Error de envío: ' + error);
+        log('Send error: ' + error);
         return 3;
       }
     }

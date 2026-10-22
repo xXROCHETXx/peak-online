@@ -1,21 +1,24 @@
-import { parseInvitation } from '../connection.mjs';
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('host-mode').textContent = 'PEAK EN EL NAVEGADOR';
-  document.getElementById('host-mode-note').textContent = 'El juego carga desde la web. Para jugar con amigos, abre el enlace de su partida.';
-  const form = document.createElement('form');
-  form.id = 'static-host-invite';
-  form.innerHTML = '<label class="host-field" for="static-invite">Enlace de una partida</label><input id="static-invite" type="url" inputmode="url" placeholder="https://…" autocomplete="off" spellcheck="false" required><button type="submit" class="primary">Entrar al host</button><p id="static-invite-error" class="host-error" role="alert"></p>';
-  document.getElementById('host-form').before(form);
-  form.addEventListener('submit', event => {
-    event.preventDefault();
-    try {
-      const allowLocal = location.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname);
-      const target = parseInvitation(document.getElementById('static-invite').value, '', allowLocal);
-      const page = new URL('./index.html', location.href);
-      const fields = { server: target.server };
-      if (target.room) fields.room = target.room;
-      page.hash = new URLSearchParams(fields).toString();
-      window.parent.location.assign(page.href);
-    } catch (error) { document.getElementById('static-invite-error').textContent = error.message; }
-  });
+  const el = id => document.getElementById(id);
+  el('host-mode').textContent = 'PRIVATE ROOMS';
+  el('host-mode-note').textContent = 'Create a room and share its six-character code. Keep the host tab open while playing.';
+  el('host-create').textContent = 'Create room';
+  el('host-join').textContent = 'Join room';
+  const randomize = document.createElement('button');
+  randomize.id = 'host-randomize-name'; randomize.type = 'button'; randomize.className = 'host-secondary';
+  randomize.textContent = 'Randomize name'; randomize.setAttribute('aria-label', 'Generate another player name');
+  el('host-nickname').after(randomize);
+  randomize.onclick = () => { if (!el('host-nickname').disabled) { el('host-nickname').value = window.PeakNames.generate(); el('host-nickname').focus(); } };
+  el('host-copy').onclick = async () => {
+    const room = el('host-room-code').textContent.trim();
+    if (!window.PeakRooms.validCode(room)) return;
+    const page = new URL('./index.html', location.href);
+    page.hash = new URLSearchParams({ room }).toString();
+    try { await navigator.clipboard.writeText(page.href); el('host-copy-fallback').hidden = true; el('host-notice').textContent = 'Invite link copied.'; }
+    catch {
+      el('host-copy-fallback').hidden = false; el('host-copy-text').value = page.href; el('host-copy-text').focus(); el('host-copy-text').select();
+      el('host-notice').textContent = 'Copy the selected invite link.';
+    }
+  };
 });
+window.addEventListener('pagehide', () => window.peakBrowserTransport?.close());

@@ -1,35 +1,45 @@
-# PEAK en el navegador
+# PEAK in the browser
 
-Este repositorio publica el cliente web de PEAK. La entrada abre el juego directamente, sin una página de instalación.
+[Open PEAK](https://rawcdn.githack.com/xXROCHETXx/peak-online/web-v4/site/index.html)
 
-Enlace de la versión web: https://rawcdn.githack.com/xXROCHETXx/peak-online/web-v3/site/index.html
+This repository publishes the browser client, not the native development tools. The link opens the game directly. The HTML host may display an initial confirmation before opening the page.
 
-Este enlace sirve los archivos estáticos del repositorio mediante el CDN de rawgit.hack. El servicio puede mostrar una confirmación inicial antes de abrir el HTML. No requiere instalar el iniciador ni iniciar sesión para cargar el cliente web.
+## Playing with friends
 
-URL prevista de GitHub Pages: https://xxrochetxx.github.io/peak-online/
+1. Wait for PEAK to load, edit your name if desired, and click **Create room** in the room panel. This starts the airport.
+2. Share the **six-character room code** or use **Copy invite link**.
+3. Friends open the same version of the page, enter the code, and click **Join room**. An invite link fills the code automatically.
 
-## Publicación
+Each room supports four players. Its host tab runs the room broker for that group and must remain open while playing. Creating a room does not turn that computer into a server for everyone visiting the page. No account, Photon App ID, native launcher, or public host URL is needed for these browser rooms.
 
-La carpeta `site/` contiene el HTML, JavaScript, estilos y WebAssembly que usa el navegador. El workflow publica únicamente esa carpeta. Los HTML se sirven desde rawgit.hack y los scripts, estilos y cliente modificado desde jsDelivr, fijados a la etiqueta `web-v2`. Así se evita depender de las respuestas 403 observadas al solicitar scripts al alojamiento del HTML. Los datos originales y los niveles se cargan desde el CDN del port original, fijados a la revisión `f1924c4fcd0099172f50f8d2a5273fda12fa1444`. El cliente modificado está comprimido; la página lo descomprime antes de iniciar Unity.
+Codes mix uppercase letters and digits, omitting I, O, 0, and 1 for readability. Player names default to local English adjective-and-animal combinations such as **Sleepy Capybara** or **Dramatic Goose**. Names are editable; **Randomize name** generates another one without calling an external service.
 
-El cargador comprueba que los scripts se hayan inicializado antes de descargar los datos, reintenta descargas interrumpidas sin duplicar bytes y dispone de una fuente alternativa de la misma revisión para los datos originales. Los errores indican el archivo que falla. Las respuestas de acceso denegado o límite de peticiones detienen los reintentos.
+The microphone defaults to **PEAK controls** and **Lower latency**. Enable it in the panel and grant browser permission. The existing native voice codec and playback bridge are retained. Use headphones when testing two windows on one computer.
 
-La entrada `web-v3` descarga cuatro fragmentos en paralelo y carga el código y framework al mismo tiempo. Los scripts del puente se descargan juntos y se ejecutan en orden. El descargador está incluido en el HTML para evitar una petición adicional al iniciar. Los archivos completos se guardan en Cache Storage cuando el navegador lo permite; una recarga reutiliza lo ya guardado. Si no hay almacenamiento disponible, continúa la carga desde la red. La primera carga suma unos 261 MB y aún necesita iniciar Unity. Los archivos del cliente que no cambiaron conservan sus URL de `web-v2` para aprovechar su caché existente.
+## Transport
 
-Se sigue el esquema de [los ports de Dasher](https://github.com/dashiellbenton/ports/blob/main/.github/workflows/static.yml) y de [PEAK en wasm.rip](https://github.com/wasmdotrip/wasm.rip/blob/main/files/peak/PEAK.html): una web estática y archivos del juego en un CDN.
+PeerJS 1.5.5 and the public PeerJS Cloud service provide room discovery and WebRTC negotiation. Game and voice packets travel through WebRTC data channels to the room's host. Discovery therefore needs internet access even though the room broker runs in the host tab. The host closing the page ends the room; automatic host migration is not implemented.
 
-**Estado de GitHub Pages:** GitHub rechazó el despliegue por un bloqueo de facturación de la cuenta. La URL de Pages todavía no se ha publicado. [Mensaje del despliegue](https://github.com/xXROCHETXx/peak-online/actions/runs/39722120348). GitHub Pages está incluido en GitHub Free para repositorios públicos; ese mensaje es un bloqueo de la cuenta, no un requisito de contratar alojamiento. El enlace del CDN funciona de forma independiente del despliegue de Pages.
+The adapter preserves the native Photon GpBinaryV18 packets, room properties, cached game events, and separate voice room. Some network configurations may need a TURN relay; a successful connection on one network does not guarantee connectivity through every NAT or firewall. Legacy invitations containing an explicit `server` URL still use the earlier host-server route.
 
-Después de resolverlo, abre Actions → Publicar PEAK en GitHub Pages → Run workflow. En Settings → Pages debe estar seleccionada la fuente GitHub Actions.
+## Static publication and loading
 
-## Partidas con amigos
+Only `site/` is deployed. HTML is served through raw.githack; scripts and styles use pinned jsDelivr URLs. Version `web-v4` adds browser rooms and the English interface. Unchanged WASM, framework, voice pump, playback, and CSS URLs remain pinned to `web-v2` to reuse existing caches.
 
-El enlace de la página carga el cliente web aunque no haya una sala elegida. Las invitaciones que incluyen `#server=…&room=…` abren directamente la partida de ese host, con el código y la voz de nuestra adaptación. También se puede pegar el enlace de una partida en el panel del juego.
+Original game data and level bundles are fetched from [wasmdotrip/Peak-Port](https://github.com/wasmdotrip/Peak-Port), pinned to `f1924c4fcd0099172f50f8d2a5273fda12fa1444`. The loader downloads four data parts concurrently, fetches the framework and compressed WASM in parallel, checks file lengths, and reuses complete files through Cache Storage when available. Interrupted attempts do not duplicate bytes. The initial client download is approximately 261 MB, followed by Unity startup; later level loads fetch additional bundles.
 
-La simulación de la partida y el servidor de salas siguen dependiendo del host de cada grupo. Servir el HTML en Pages no ejecuta ese servidor. Crear salas y voz enteramente desde el navegador requeriría adaptar el transporte; esta publicación no afirma haber implementado ese cambio.
+This follows the static-page/CDN arrangement used by the [original PEAK port](https://github.com/wasmdotrip/wasm.rip/blob/main/files/peak/PEAK.html) and [Dasher's ports](https://github.com/dashiellbenton/ports/blob/main/.github/workflows/static.yml).
 
-## Créditos y validación
+The GitHub Pages workflow is retained, but its previous deployment was [blocked by an account billing lock](https://github.com/xXROCHETXx/peak-online/actions/runs/39722120348). The CDN link above is independent of that workflow.
 
-Port original de Dasher. PEAK de Aggro Crab & Landfall. Archivos originales desde `wasmdotrip/Peak-Port`.
+## Validation
 
-Se verificaron rutas, invitaciones, compresión e integridad del WASM modificado. Ese binario conserva las mejoras de movimiento y voz probadas en dos instancias locales. La nueva entrada estática aún requiere una carga completa en un navegador y una partida entre dos equipos.
+- 31 local checks cover the loader, invitations, room controls, random names/codes, broker routing, voice packets, reconnection, and connection cleanup.
+- 18 protocol checks from the earlier local-server suite pass against the browser broker, including cached data, targeted events, actor properties, capacity, and the separate voice room.
+- A live integration check with PeerJS Cloud and native WebRTC in Node passed room discovery, the Photon master/game handoff, joining, and bidirectional event routing. A 200 KB packet survived data-channel fragmentation byte for byte. Both endpoints ran on one computer.
+
+These checks do not exercise Unity rendering or establish a complete two-computer game session. The unchanged game binary previously passed local movement and microphone tests; the new browser transport still needs a full in-game check between two computers.
+
+## Credits
+
+Original browser port by Dasher. PEAK by Aggro Crab and Landfall. See [third-party components and licenses](site/THIRD-PARTY.md), including the GPL-3.0-only room-broker source adaptation.

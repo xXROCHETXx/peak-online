@@ -43,7 +43,7 @@ export async function downloadFile(urls, {
       }
       if ((response.headers.get('content-type') || '').includes('text/html')) {
         await response.body?.cancel();
-        const error = new Error('El servidor devolvió una página HTML en lugar del archivo.');
+        const error = new Error('The server returned an HTML page instead of the game file.');
         error.noRetry = true;
         throw error;
       }
@@ -61,7 +61,7 @@ export async function downloadFile(urls, {
         }
       } else accept(await response.arrayBuffer());
       if (expectedBytes !== undefined && received !== expectedBytes) {
-        throw new Error('Descarga incompleta: ' + received + ' de ' + expectedBytes + ' bytes.');
+        throw new Error('Incomplete download: ' + received + ' of ' + expectedBytes + ' bytes.');
       }
       const blob = new Blob(chunks);
       if (cache && !cacheWritesDisabled && expectedBytes !== undefined) {
@@ -79,7 +79,7 @@ export async function downloadFile(urls, {
       await wait(750 * (attempt + 1));
     } finally { reader?.releaseLock(); }
   }
-  throw new Error('No se pudo descargar ' + name + ': ' + (lastError?.message || lastError));
+  throw new Error('Could not download ' + name + ': ' + (lastError?.message || lastError));
 }
 
 // Bound simultaneous downloads and keep the original part order for Unity.

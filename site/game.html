@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es" class="peak-static-page">
+<html lang="en" class="peak-static-page">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <base href="./">
-    <title>PEAK — salas por código</title>
+    <title>PEAK — Private Rooms</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <style>
       /* black, not the Unity brown: whatever the canvas does not cover reads as a
@@ -38,67 +38,71 @@
     }, true);
   </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.css">
-<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/socket-bridge.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/socket-bridge.js"></script>
 <script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-pump.js"></script>
 <script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-output.js"></script>
-<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-bridge.js"></script>
-<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/room-controller.js"></script>
-<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/native-client.js"></script>
-<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.js"></script>
-<script type="module" src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/static-entry.mjs"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/voice-bridge.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/room-controller.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/native-client.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/photon-room.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/browser-transport.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/player-names.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/host.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/experimental/static-entry.mjs"></script>
 <style>
-      .peak-static-page #host-form,.peak-static-page #host-room,.peak-static-page #host-open-game,
+      .peak-static-page #host-open-game,
       .peak-static-page #host-switch-mode,.peak-static-page .host-server-info{display:none!important}
-      #static-host-invite{margin:12px 0}#static-host-invite button{width:100%;margin-top:10px}
+      #host-randomize-name{font-size:11px;margin:8px 0 12px}#host-create{width:100%}
     </style>
 </head>
   <body>
-<aside id="peak-host" aria-label="Salas privadas de PEAK" data-phase="loading">
+<aside id="peak-host" aria-label="PEAK private rooms" data-phase="loading">
   <header class="host-header">
     <svg class="host-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 32 17 7l8 14 4-7 9 18H3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m12 16 5 4 5-4M25 21l4 5 4-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-    <div><div class="host-brand">PEAK</div><span class="host-subtitle" id="host-compact">Salas privadas</span></div>
-    <button id="host-toggle" type="button" aria-label="Minimizar panel de sala" aria-expanded="true" aria-controls="host-body">−</button>
+    <div><div class="host-brand">PEAK</div><span class="host-subtitle" id="host-compact">Private rooms</span></div>
+    <button id="host-toggle" type="button" aria-label="Minimize room panel" aria-expanded="true" aria-controls="host-body">−</button>
   </header>
   <div id="host-body">
-    <div class="host-mode-row"><span class="host-eyebrow" id="host-mode">PARTIDA EXPERIMENTAL</span><span class="host-experimental">En desarrollo</span></div>
-    <p id="host-mode-note">Las salas funcionan. La sincronización del cooperativo sigue en desarrollo.</p>
-    <button id="host-open-game" type="button" class="primary" hidden>Abrir partida →</button>
+    <div class="host-mode-row"><span class="host-eyebrow" id="host-mode">BROWSER CO-OP</span><span class="host-experimental">Experimental</span></div>
+    <p id="host-mode-note">Create a room or join friends with a six-character code.</p>
+    <button id="host-open-game" type="button" class="primary" hidden>Open game →</button>
     <div class="host-connection">
-      <span id="host-step">PREPARANDO</span>
-      <p id="host-status" role="status" aria-live="polite">Cargando el juego…</p>
-      <progress id="host-progress" max="1" value="0" aria-label="Carga de PEAK"></progress>
+      <span id="host-step">PREPARING</span>
+      <p id="host-status" role="status" aria-live="polite">Loading the game…</p>
+      <progress id="host-progress" max="1" value="0" aria-label="PEAK loading progress"></progress>
       <div id="host-busy" hidden aria-hidden="true"></div>
-      <button id="host-cancel" type="button" class="host-secondary" hidden>Cancelar conexión</button>
+      <button id="host-cancel" type="button" class="host-secondary" hidden>Cancel connection</button>
     </div>
     <p id="host-game-error" class="host-error" role="alert" hidden></p>
     <form id="host-form" novalidate>
-      <label class="host-field" for="host-nickname">Tu nombre</label>
+      <label class="host-field" for="host-nickname">Your name</label>
       <input id="host-nickname" maxlength="24" placeholder="Scout" autocomplete="nickname">
-      <button id="host-create" type="button" class="primary" disabled>Crear una sala</button>
-      <div class="host-divider">o únete a tus amigos</div>
-      <label class="host-field" for="host-code">Código de invitación</label>
-      <div class="join-row"><input id="host-code" maxlength="6" placeholder="ABC234" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="host-code-error"><button id="host-join" type="submit" class="host-secondary" disabled>Entrar</button></div>
+      <button id="host-create" type="button" class="primary" disabled>Create room</button>
+      <div class="host-divider">or join your friends</div>
+      <label class="host-field" for="host-code">Room code</label>
+      <div class="join-row"><input id="host-code" maxlength="6" placeholder="ABC234" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="host-code-error"><button id="host-join" type="submit" class="host-secondary" disabled>Join</button></div>
       <p id="host-code-error" class="host-error" role="alert"></p>
     </form>
     <div id="host-room" hidden>
       <div class="host-room-top"><span id="host-role"></span><span id="host-players"></span></div>
-      <div class="host-code-card"><span class="host-code-label">CÓDIGO DE INVITACIÓN</span><strong id="host-room-code"></strong><button id="host-copy-code" type="button" class="host-secondary">Copiar código</button></div>
-      <div class="host-room-actions"><button id="host-copy" type="button" class="primary">Copiar enlace</button><button id="host-leave" type="button" class="host-secondary">Salir</button></div>
+      <div class="host-code-card"><span class="host-code-label">ROOM CODE</span><strong id="host-room-code"></strong><button id="host-copy-code" type="button" class="host-secondary">Copy code</button></div>
+      <div class="host-room-actions"><button id="host-copy" type="button" class="primary">Copy invite link</button><button id="host-leave" type="button" class="host-secondary">Leave</button></div>
     </div>
-    <button id="host-reload" type="button" class="primary" hidden>Recargar y volver al menú</button>
+    <button id="host-reload" type="button" class="primary" hidden>Reload and return to menu</button>
     <p id="host-notice" role="status" aria-live="polite"></p>
-    <div id="host-copy-fallback" hidden><label for="host-copy-text">Texto para copiar</label><input id="host-copy-text" readonly></div>
-    <div class="host-server-info"><p>Servidor propio · <span id="host-server"></span></p><div id="host-local-note" hidden>Esta dirección es local. Para otros equipos, abre la dirección de red del host.</div></div>
-    <a id="host-switch-mode" href="host.html?salas=1">Comprobar solo las salas ↗</a>
-    <details id="host-diagnostics"><summary>Diagnóstico de conexión</summary><pre id="host-log"></pre><button id="host-copy-diagnostics" type="button" class="host-secondary">Copiar diagnóstico</button></details>
+    <div id="host-copy-fallback" hidden><label for="host-copy-text">Text to copy</label><input id="host-copy-text" readonly></div>
+    <div class="host-server-info"><p>Group host · <span id="host-server"></span></p><div id="host-local-note" hidden>This address is local. Other computers need the public host address.</div></div>
+    <a id="host-switch-mode" href="host.html?salas=1">Test room connection ↗</a>
+    <details id="host-diagnostics"><summary>Connection diagnostics</summary><pre id="host-log"></pre><button id="host-copy-diagnostics" type="button" class="host-secondary">Copy diagnostics</button></details>
   </div>
 </aside>
     <div id="wrap">
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
       <div id="bar"><div id="barfill"></div></div>
-      <div id="msg">Cargando PEAK…</div>
+      <div id="msg">Loading PEAK…</div>
     </div>
-    <button id="fs" type="button">Pantalla completa</button>
+    <button id="fs" type="button">Fullscreen</button>
     <div id="credit">
       ported by @._.dasher._.<br>
       <a href="https://wasm.rip/" target="_blank" rel="noopener">wasm.rip</a>
@@ -150,7 +154,7 @@ async function downloadFile(urls, {
       }
       if ((response.headers.get('content-type') || '').includes('text/html')) {
         await response.body?.cancel();
-        const error = new Error('El servidor devolvió una página HTML en lugar del archivo.');
+        const error = new Error('The server returned an HTML page instead of the game file.');
         error.noRetry = true;
         throw error;
       }
@@ -168,7 +172,7 @@ async function downloadFile(urls, {
         }
       } else accept(await response.arrayBuffer());
       if (expectedBytes !== undefined && received !== expectedBytes) {
-        throw new Error('Descarga incompleta: ' + received + ' de ' + expectedBytes + ' bytes.');
+        throw new Error('Incomplete download: ' + received + ' of ' + expectedBytes + ' bytes.');
       }
       const blob = new Blob(chunks);
       if (cache && !cacheWritesDisabled && expectedBytes !== undefined) {
@@ -186,7 +190,7 @@ async function downloadFile(urls, {
       await wait(750 * (attempt + 1));
     } finally { reader?.releaseLock(); }
   }
-  throw new Error('No se pudo descargar ' + name + ': ' + (lastError?.message || lastError));
+  throw new Error('Could not download ' + name + ': ' + (lastError?.message || lastError));
 }
 
 // Bound simultaneous downloads and keep the original part order for Unity.
@@ -294,8 +298,8 @@ async function mapConcurrent(items, task, concurrency = 4, signal) {
         bar.style.display = "block";
         var pct = TOTAL ? downloaded / TOTAL : 0;
         barfill.style.width = (pct * 100).toFixed(1) + "%";
-        window.peakHostProgress?.(pct * .8, "Descargando PEAK · " + Math.floor(pct * 100) + "%");
-        setMsg("Cargando archivos · " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
+        window.peakHostProgress?.(pct * .8, "Downloading PEAK · " + Math.floor(pct * 100) + "%");
+        setMsg("Loading files · " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
                " MB (" + Math.floor(pct * 100) + "%)");
       }
 
@@ -309,11 +313,11 @@ async function mapConcurrent(items, task, concurrency = 4, signal) {
             expectedBytes: expected,
             cacheName: "peak-game-files-v1", signal: signal,
             onBytes: function (bytes) { downloaded += bytes; report(label); },
-            onRetry: function (file, attempt) { setMsg("Reintentando " + file + " · intento " + attempt + " de 3…"); }
+            onRetry: function (file, attempt) { setMsg("Retrying " + file + " · attempt " + attempt + " of 3…"); }
           });
         }, 4, downloadController.signal);
         if (entry.gzip) {
-          if (typeof DecompressionStream !== "function") throw new Error("Actualiza tu navegador para cargar PEAK.");
+          if (typeof DecompressionStream !== "function") throw new Error("Update your browser to load PEAK.");
           var inflated = new Blob(buffers).stream().pipeThrough(new DecompressionStream("gzip"));
           buffers = [await new Response(inflated).arrayBuffer()];
         }
@@ -328,21 +332,22 @@ async function mapConcurrent(items, task, concurrency = 4, signal) {
           });
           var required = { 'host.js': window.peakHostProgress, 'native-client.js': window.createPeakNativeClient,
             'room-controller.js': window.PeakRooms, 'socket-bridge.js': window.peakSocketBridge,
-            'voice-bridge.js': window.peakVoiceBridge };
+            'voice-bridge.js': window.peakVoiceBridge, 'photon-room.js': window.PeakPhoton,
+            'browser-transport.js': window.peakBrowserTransport, 'peerjs': window.Peer, 'player-names.js': window.PeakNames };
           var missing = Object.keys(required).filter(function (name) { return !required[name]; });
           if (missing.length || window.peakAssetErrors.length) {
-            throw new Error("No se pudieron cargar los scripts de PEAK: " + (missing.join(', ') || window.peakAssetErrors.map(function (url) { return new URL(url).pathname.split('/').pop(); }).join(', ')) + ". Recarga para reintentar.");
+            throw new Error("PEAK scripts failed to load: " + (missing.join(', ') || window.peakAssetErrors.map(function (url) { return new URL(url).pathname.split('/').pop(); }).join(', ')) + ". Reload to try again.");
           }
           downloadController = new AbortController();
           var assets = await Promise.all([
-            assemble(MANIFEST.data, "datos del juego"),
-            assemble(MANIFEST.framework, "motor"),
-            assemble(MANIFEST.code, "código")
+            assemble(MANIFEST.data, "game data"),
+            assemble(MANIFEST.framework, "engine"),
+            assemble(MANIFEST.code, "code")
           ]);
           var dataUrl = assets[0], frameworkUrl = assets[1], codeUrl = assets[2];
 
-          setMsg("Iniciando PEAK…");
-          window.peakHostProgress(.8, "Iniciando PEAK…");
+          setMsg("Starting PEAK…");
+          window.peakHostProgress(.8, "Starting PEAK…");
           var script = document.createElement("script");
           script.src = new URL(MANIFEST.loader.file, BUILD).href;
           script.onload = async function () {
@@ -358,12 +363,12 @@ async function mapConcurrent(items, task, concurrency = 4, signal) {
               }, function (p) {
                 bar.style.display = "block";
                 barfill.style.width = Math.round(p * 100) + "%";
-                setMsg("Cargando… " + Math.round(p * 100) + "%");
-                window.peakHostProgress(.8 + p * .2, "Cargando PEAK · " + Math.round(p * 100) + "%");
+                setMsg("Loading… " + Math.round(p * 100) + "%");
+                window.peakHostProgress(.8 + p * .2, "Loading PEAK · " + Math.round(p * 100) + "%");
               });
               window.unityInstance = instance;
               window.peakHostReady(instance);
-              window.peakHostProgress(1, "Preparando el menú de PEAK…");
+              window.peakHostProgress(1, "Preparing the PEAK menu…");
               bar.style.display = "none";
               setMsg("");
               // Unity's own SetFullscreen keeps the canvas sized to the screen; the
@@ -375,9 +380,9 @@ async function mapConcurrent(items, task, concurrency = 4, signal) {
                 else if (canvas.requestFullscreen) canvas.requestFullscreen();
                 canvas.focus();
               };
-            } catch (e) { showFailure(new Error("No se pudo iniciar PEAK: " + (e.message || e))); }
+            } catch (e) { showFailure(new Error("Could not start PEAK: " + (e.message || e))); }
           };
-          script.onerror = function () { showFailure(new Error("No se pudo cargar WebGL.loader.js desde el CDN.")); };
+          script.onerror = function () { showFailure(new Error("Could not load WebGL.loader.js from the CDN.")); };
           document.body.appendChild(script);
         } catch (e) {
           downloadController?.abort(e);

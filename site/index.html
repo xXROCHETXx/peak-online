@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#000000">
-  <meta name="description" content="Abre PEAK directamente en el navegador.">
+  <meta name="description" content="Play PEAK directly in your browser.">
   <title>PEAK</title>
   <style>
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#000;color:#eee;font:14px/1.5 system-ui,sans-serif}
@@ -13,12 +13,12 @@
     #entry-error{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:24px}
     a{color:#b0d966}[hidden]{display:none!important}
   </style>
-  <script type="module" src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/entry.mjs" onerror="document.getElementById('boot-status').textContent='No se pudo cargar el iniciador de PEAK desde el CDN. Recarga para volver a intentarlo.'"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v4/site/entry.mjs" onerror="document.getElementById('boot-status').textContent='Could not load the PEAK launcher from the CDN. Reload to try again.'"></script>
 </head>
 <body>
   <iframe id="peak-game" title="PEAK" allow="microphone; fullscreen; autoplay; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  <p id="boot-status" role="status">Cargando PEAK…</p>
-  <div id="entry-error" hidden><h1>No se pudo abrir la invitación</h1><p id="entry-message" role="alert"></p><a href="./index.html">Abrir PEAK</a></div>
-  <noscript>Activa JavaScript para jugar a PEAK.</noscript>
+  <p id="boot-status" role="status">Loading PEAK…</p>
+  <div id="entry-error" hidden><h1>Could not open the invite</h1><p id="entry-message" role="alert"></p><a href="./index.html">Open PEAK</a></div>
+  <noscript>Enable JavaScript to play PEAK.</noscript>
 </body>
 </html>
