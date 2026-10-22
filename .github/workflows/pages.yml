@@ -1,5 +1,5 @@
 name: Publicar PEAK en GitHub Pages
-# Publish only the static launcher. Each host runs the Windows Release package.
+# Publish the browser client. Original game data is fetched from the upstream CDN.
 on:
   push:
     branches: [main]
