@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#193b31">
+  <meta name="description" content="PEAK en el navegador. Cada grupo juega en el servidor de su propio host.">
+  <title>PEAK · Juega con tu grupo</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <div id="launcher">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="PEAK, inicio">
+        <svg viewBox="0 0 48 40" aria-hidden="true"><path d="M2 36 20 4l11 19 6-10 9 23H2Z"/><path d="m13 17 7 6 6-6m5 6 6 6 4-3"/></svg>
+        <span>PEAK<span class="brand-note">ONLINE</span></span>
+      </a>
+      <span class="tag"><i></i> CADA GRUPO, SU HOST</span>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="title">
+        <div class="eyebrow">LA EXPEDICIÓN EMPIEZA AQUÍ</div>
+        <h1 id="title">Nos vemos<br>en la <em>cima.</em></h1>
+        <p>Un host abre su partida.<br>Hasta cuatro amigos entran con un enlace.</p>
+        <svg class="mountains" viewBox="0 0 440 250" aria-hidden="true"><path d="m0 246 130-197 76 107 52-138 182 228Z" class="mountain-back"/><path d="m73 246 93-135 67 86 50-92 103 141Z" class="mountain-front"/><path d="m228 96 30-78 62 78-35-15-22 22-18-17Z" class="snow"/><path d="m100 96 30-47 32 45-20-9-12 12-14-13Z" class="snow"/><path d="M51 247c44-23 42-41 102-39s40-43 92-30" class="trail"/><circle cx="245" cy="178" r="5" class="trail-dot"/></svg>
+        <div class="intro-note">COOPERATIVO EXPERIMENTAL <span>01 — 04 JUGADORES</span></div>
+      </section>
+      <section class="actions" aria-label="Preparar la partida">
+        <form id="join-form" class="card join-card" novalidate>
+          <div class="card-number">01 <span>YA TENGO UNA INVITACIÓN</span></div>
+          <h2>Únete a tu grupo</h2>
+          <p>Pega el enlace que te compartió el host.</p>
+          <label for="invitation">Enlace de invitación o dirección del host</label>
+          <input id="invitation" type="url" inputmode="url" placeholder="https://…" autocomplete="off" spellcheck="false" required aria-describedby="join-error">
+          <div class="room-row">
+            <div><label for="room">Código de sala <span>(si no viene en el enlace)</span></label>
+              <input id="room" maxlength="6" placeholder="ABC234" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="join-error"></div>
+            <button type="submit">Abrir PEAK <span aria-hidden="true">↗</span></button>
+          </div>
+          <p id="join-error" class="error" role="alert"></p>
+          <p id="destination" class="destination" role="status" hidden></p>
+          <small>El juego se conecta al PC de ese host. El micrófono se activa dentro de la partida.</small>
+        </form>
+        <section class="card host-card" aria-labelledby="host-title">
+          <div class="card-number">02 <span>YO CREO LA PARTIDA</span></div>
+          <h2 id="host-title">Abre el camino</h2>
+          <p>Tu PC aloja la partida de tu grupo mientras el iniciador esté abierto.</p>
+          <ol><li>Descarga y extrae el iniciador para Windows.</li><li>Abre <strong>Crear partida.cmd</strong> y espera el enlace.</li><li>Crea la sala en PEAK y pulsa <strong>Copiar enlace</strong>.</li></ol>
+          <a class="download" href="https://github.com/xXROCHETXx/peak-online/releases/latest/download/PEAK-host-Windows.zip">Descargar iniciador <span>WINDOWS 64 BITS ↓</span></a>
+          <small>Tus amigos juegan desde el navegador. Solo el host ejecuta el iniciador. No necesitas una cuenta de Photon.</small>
+        </section>
+      </section>
+    </main>
+    <footer><span>Port de <a href="https://wasm.rip/" target="_blank" rel="noopener">Dasher · wasm.rip ↗</a></span><span>Cada partida tiene su propio host.</span><a href="https://github.com/xXROCHETXx/peak-online" target="_blank" rel="noopener">Código e instrucciones ↗</a></footer>
+  </div>
+  <section id="game" aria-label="Partida de PEAK" hidden>
+    <div class="game-bar"><strong>PEAK</strong><span id="game-host"></span><button id="open-direct" type="button">Abrir aparte ↗</button><button id="return" type="button">Volver</button></div>
+    <p id="frame-note" role="status">Cargando el juego desde el host… Si no responde, comprueba que mantenga abierto el iniciador.</p>
+    <div id="frame-container"></div>
+  </section>
+</body>
+</html>
