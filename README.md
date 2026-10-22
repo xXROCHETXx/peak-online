@@ -2,6 +2,10 @@
 
 Este repositorio publica el cliente web de PEAK. La entrada abre el juego directamente, sin una página de instalación.
 
+Enlace de la versión web: https://rawcdn.githack.com/xXROCHETXx/peak-online/web-v1/site/index.html
+
+Este enlace sirve los archivos estáticos del repositorio mediante el CDN de rawgit.hack. El servicio puede mostrar una confirmación inicial antes de abrir el HTML. No requiere instalar el iniciador ni iniciar sesión para cargar el cliente web.
+
 URL prevista de GitHub Pages: https://xxrochetxx.github.io/peak-online/
 
 ## Publicación
@@ -10,7 +14,7 @@ La carpeta `site/` contiene el HTML, JavaScript, estilos y WebAssembly que usa e
 
 Se sigue el esquema de [los ports de Dasher](https://github.com/dashiellbenton/ports/blob/main/.github/workflows/static.yml) y de [PEAK en wasm.rip](https://github.com/wasmdotrip/wasm.rip/blob/main/files/peak/PEAK.html): una web estática y archivos del juego en un CDN.
 
-**Estado:** GitHub rechazó el despliegue por un bloqueo de facturación de la cuenta. La URL todavía no se ha publicado. [Mensaje del despliegue](https://github.com/xXROCHETXx/peak-online/actions/runs/39722120348). GitHub Pages está incluido en GitHub Free para repositorios públicos; ese mensaje es un bloqueo de la cuenta, no un requisito de contratar alojamiento.
+**Estado de GitHub Pages:** GitHub rechazó el despliegue por un bloqueo de facturación de la cuenta. La URL de Pages todavía no se ha publicado. [Mensaje del despliegue](https://github.com/xXROCHETXx/peak-online/actions/runs/39722120348). GitHub Pages está incluido en GitHub Free para repositorios públicos; ese mensaje es un bloqueo de la cuenta, no un requisito de contratar alojamiento. El enlace del CDN funciona de forma independiente del despliegue de Pages.
 
 Después de resolverlo, abre Actions → Publicar PEAK en GitHub Pages → Run workflow. En Settings → Pages debe estar seleccionada la fuente GitHub Actions.
 

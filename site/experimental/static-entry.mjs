@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const allowLocal = location.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname);
       const target = parseInvitation(document.getElementById('static-invite').value, '', allowLocal);
-      const page = new URL('./', location.href);
+      const page = new URL('./index.html', location.href);
       const fields = { server: target.server };
       if (target.room) fields.room = target.room;
       page.hash = new URLSearchParams(fields).toString();
