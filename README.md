@@ -37,8 +37,9 @@ The GitHub Pages workflow is retained, but its previous deployment was [blocked 
 - 31 local checks cover the loader, invitations, room controls, random names/codes, broker routing, voice packets, reconnection, and connection cleanup.
 - 18 protocol checks from the earlier local-server suite pass against the browser broker, including cached data, targeted events, actor properties, capacity, and the separate voice room.
 - A live integration check with PeerJS Cloud and native WebRTC in Node passed room discovery, the Photon master/game handoff, joining, and bidirectional event routing. A 200 KB packet survived data-channel fragmentation byte for byte. Both endpoints ran on one computer.
+- The published page loaded Unity in two browser tabs. Creating a room loaded the airport; joining through a code-only invite showed the same code and **2/4 players** in both tabs. The English random-name button and microphone defaults were also checked in the browser.
 
-These checks do not exercise Unity rendering or establish a complete two-computer game session. The unchanged game binary previously passed local movement and microphone tests; the new browser transport still needs a full in-game check between two computers.
+The browser check ran on one computer. A full session between two computers, including voice through the new transport, remains to be verified. The unchanged game binary had previously passed local movement and microphone tests.
 
 ## Credits
 
