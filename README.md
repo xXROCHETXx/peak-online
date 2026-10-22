@@ -2,11 +2,13 @@
 
 La página de GitHub Pages es un lanzador estático. **No contiene la dirección de un servidor de partidas compartido.** Cada host descarga el iniciador, ejecuta su servidor en su propio PC y comparte una invitación para su grupo. Hasta cuatro jugadores por sala; los invitados solo necesitan un navegador compatible.
 
+**Estado de publicación:** el [repositorio](https://github.com/xXROCHETXx/peak-online) y el [iniciador para Windows](https://github.com/xXROCHETXx/peak-online/releases/latest) están publicados. El despliegue de GitHub Pages fue rechazado por GitHub porque la cuenta tiene un bloqueo de facturación; no llegó a ejecutarse. Mientras la página principal no responda, el iniciador abre directamente la partida en el enlace HTTPS de su propio host. Puedes jugar por ese enlace sin esperar a Pages.
+
 ## Crear una partida (Windows x64)
 
 1. Descarga `PEAK-host-Windows.zip` desde Releases y extrae el ZIP completo.
 2. Abre `Crear partida.cmd`. El primer inicio descarga el conector oficial `cloudflared` y verifica su SHA256. No instala servicios ni modifica el router o el firewall.
-3. Espera el enlace y abre la página. Pulsa **Abrir PEAK**, espera el menú y usa **Host Game · Crear partida**.
+3. Espera el enlace y ábrelo. Si aparece el lanzador, pulsa **Abrir PEAK**. Si la página principal está caída, el iniciador abre el juego directamente. Espera el menú y usa **Host Game · Crear partida**.
 4. Dentro de PEAK, pulsa **Copiar enlace**. Comparte ese enlace con tus amigos: incluye la dirección de tu host y el código de sala.
 5. Mantén el iniciador abierto mientras juegan. Pulsa **Q** en esa ventana para detener el túnel y el servidor.
 
@@ -32,6 +34,8 @@ Se sigue la estructura del [wrapper PEAK de wasm.rip](https://github.com/wasmdot
 ## Desarrollo y publicación
 
 El repositorio se prepara para `xXROCHETXx/peak-online`. El workflow `.github/workflows/pages.yml` publica únicamente `site/` al hacer push a `main`. En Settings → Pages, la fuente debe ser **GitHub Actions**. El iniciador se distribuye como archivo de Release, fuera del historial Git y de Pages.
+
+Para finalizar Pages, el propietario debe resolver el bloqueo que GitHub muestra en la configuración de facturación de su cuenta. Después puede volver a ejecutar el workflow **Publicar PEAK en GitHub Pages**. No hace falta volver a subir el iniciador para que use Pages cuando esta vuelva a responder.
 
 Para crear el ZIP desde la copia local verificada (Python 3.9 o superior):
 

@@ -1,5 +1,7 @@
 # Publicar en xXROCHETXx/peak-online
 
+El repositorio y el iniciador ya están publicados. GitHub rechazó el workflow por un bloqueo de facturación de la cuenta. Para completar Pages, resuelve ese bloqueo en GitHub y vuelve a ejecutar `gh workflow run pages.yml --repo xXROCHETXx/peak-online --ref main`. Las instrucciones de creación siguientes son una referencia para reconstruir el proyecto; no vuelvas a crear el repositorio existente.
+
 Ejecuta desde esta carpeta. GitHub necesita que autorices la sesión de GitHub CLI en su web; no envíes contraseñas ni tokens por el chat.
 
 ```powershell

@@ -107,13 +107,23 @@ try {
         finally { $socket.Dispose(); $timeout.Dispose() }
         return
     }
-    $link = $Pagina.Split('#')[0] + '#server=' + [Uri]::EscapeDataString($publicOrigin)
+    $pageReady = $false
+    try {
+        $pageStatus = Invoke-WebRequest -UseBasicParsing -Uri $Pagina -Method Head -TimeoutSec 5
+        $pageReady = $pageStatus.StatusCode -eq 200
+    } catch { }
+    if ($pageReady) {
+        $link = $Pagina.Split('#')[0] + '#server=' + [Uri]::EscapeDataString($publicOrigin)
+    } else {
+        $link = $publicOrigin + '/host.html'
+        Write-Host 'La pagina principal no responde. Abriendo tu enlace de partida.'
+    }
     Set-Content -LiteralPath (Join-Path $PSScriptRoot 'Mi enlace.txt') -Value $link
     Write-Host ''
     Write-Host 'TU PARTIDA ESTA LISTA' -ForegroundColor Green
     Write-Host $link
     Write-Host ''
-    Write-Host '1. Abre el enlace y pulsa Abrir PEAK.'
+    Write-Host '1. Abre el enlace. Si aparece la pagina de entrada, pulsa Abrir PEAK.'
     Write-Host '2. Cuando cargue el menu, pulsa Host Game / Crear partida.'
     Write-Host '3. Pulsa Copiar enlace dentro de PEAK y envialo a tus amigos.'
     Write-Host 'Solo tu grupo usa este servidor. Manten esta ventana abierta.'

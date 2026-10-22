@@ -1,5 +1,7 @@
 Cada grupo ejecuta su propio servidor. GitHub Pages sirve el lanzador; el host de la partida ejecuta este iniciador en Windows x64 y comparte un enlace temporal HTTPS. Los invitados juegan desde el navegador. No hay un PC predeterminado para todos los visitantes.
 
+Esta versión abre directamente el enlace de la partida cuando la página de GitHub Pages no responde. El despliegue de Pages está pendiente de resolver un bloqueo de facturación de la cuenta en GitHub; el iniciador y los enlaces directos de cada host funcionan de forma independiente de esa página.
+
 Extrae el ZIP completo y abre `Crear partida.cmd`. El primer inicio descarga el conector HTTPS oficial de Cloudflare y comprueba su SHA256. Mantén el iniciador abierto mientras juegan; pulsa Q para cerrar tu servidor y el túnel.
 
 La invitación incluye el host y el código. La voz conserva como opción inicial Controles de PEAK y Menor retardo. Salas, movimiento y voz se validaron en dos instancias locales; el cooperativo completo y la conexión por Internet entre dos equipos siguen en validación.
