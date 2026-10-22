@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <base href="./">
     <title>PEAK — salas por código</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <style>
       /* black, not the Unity brown: whatever the canvas does not cover reads as a
          letterbox bar rather than a strip of a different colour hanging off the bottom */
@@ -37,13 +38,13 @@
     }, true);
   </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.css">
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/socket-bridge.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-pump.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-output.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-bridge.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/room-controller.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/native-client.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/socket-bridge.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-pump.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-output.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-bridge.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/room-controller.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/native-client.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.js"></script>
 <script type="module" src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/static-entry.mjs"></script>
 <style>
       .peak-static-page #host-form,.peak-static-page #host-room,.peak-static-page #host-open-game,
@@ -103,6 +104,114 @@
       <a href="https://wasm.rip/" target="_blank" rel="noopener">wasm.rip</a>
     </div>
     <script>
+      // BEGIN PEAK DOWNLOADS
+// Keep failed attempts separate: a dropped stream must never duplicate game bytes.
+let cacheWritesDisabled = false;
+async function downloadFile(urls, {
+  expectedBytes, onBytes = () => {}, onRetry = () => {},
+  fetchFile = globalThis.fetch,
+  cacheName, cacheStorage = globalThis.caches, signal,
+  wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+} = {}) {
+  signal?.throwIfAborted();
+  const name = new URL(urls[0]).pathname.split('/').pop();
+  let cache;
+  if (cacheName && cacheStorage) {
+    try {
+      cache = await cacheStorage.open(cacheName);
+      const saved = await cache.match(urls[0]);
+      if (saved) {
+        const blob = await saved.blob();
+        signal?.throwIfAborted();
+        if (saved.ok && expectedBytes !== undefined && blob.size === expectedBytes) {
+          onBytes(blob.size);
+          return blob;
+        }
+        await cache.delete(urls[0]);
+      }
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      cache = null; // Private browsing and disabled storage still support network loading.
+    }
+  }
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const url = urls[Math.min(attempt === 2 ? 1 : 0, urls.length - 1)];
+    const chunks = [];
+    let received = 0, reader;
+    try {
+      signal?.throwIfAborted();
+      const response = await fetchFile(url, { signal });
+      if (!response.ok) {
+        const error = new Error('HTTP ' + response.status + ' (' + new URL(url).hostname + ')');
+        error.noRetry = [401, 403, 429].includes(response.status);
+        await response.body?.cancel();
+        throw error;
+      }
+      if ((response.headers.get('content-type') || '').includes('text/html')) {
+        await response.body?.cancel();
+        const error = new Error('El servidor devolvió una página HTML en lugar del archivo.');
+        error.noRetry = true;
+        throw error;
+      }
+      const accept = chunk => {
+        chunks.push(chunk);
+        received += chunk.byteLength;
+        onBytes(chunk.byteLength);
+      };
+      if (response.body?.getReader) {
+        reader = response.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          accept(value);
+        }
+      } else accept(await response.arrayBuffer());
+      if (expectedBytes !== undefined && received !== expectedBytes) {
+        throw new Error('Descarga incompleta: ' + received + ' de ' + expectedBytes + ' bytes.');
+      }
+      const blob = new Blob(chunks);
+      if (cache && !cacheWritesDisabled && expectedBytes !== undefined) {
+        try { await cache.put(urls[0], new Response(blob)); }
+        catch { cacheWritesDisabled = true; } // A full disk must not prevent playing.
+      }
+      return blob;
+    } catch (error) {
+      lastError = error;
+      if (reader) { try { await reader.cancel(); } catch { /* The stream already failed. */ } }
+      if (received) onBytes(-received);
+      if (signal?.aborted) throw error;
+      if (error.noRetry || attempt === 2) break;
+      onRetry(name, attempt + 2);
+      await wait(750 * (attempt + 1));
+    } finally { reader?.releaseLock(); }
+  }
+  throw new Error('No se pudo descargar ' + name + ': ' + (lastError?.message || lastError));
+}
+
+// Bound simultaneous downloads and keep the original part order for Unity.
+async function mapConcurrent(items, task, concurrency = 4, signal) {
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal.reason);
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const results = new Array(items.length);
+  let next = 0, failure;
+  async function worker() {
+    while (!controller.signal.aborted && next < items.length) {
+      const index = next++;
+      try { results[index] = await task(items[index], index, controller.signal); }
+      catch (error) { failure ??= error; controller.abort(error); }
+    }
+  }
+  try { await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker)); }
+  finally { signal?.removeEventListener('abort', abort); }
+  if (failure) throw failure;
+  signal?.throwIfAborted();
+  return results;
+}
+// END PEAK DOWNLOADS
+
       // Manifest written by make_cdn_bundle.py. Each entry is either a plain file or a
       // list of parts that must be concatenated back together in order.
       var MANIFEST = {
@@ -164,6 +273,7 @@
       function setMsg(t) { msg.textContent = t; }
       function mb(bytes) { return (bytes / 1048576).toFixed(1); }
       function showFailure(error) {
+        loadFailed = true;
         console.error('[PEAK loader]', error);
         try { window.peakHostFailure?.(error); } catch (reportError) { console.error(reportError); }
         setMsg(error.message || String(error));
@@ -173,30 +283,35 @@
       // stays correct even if the CDN omits Content-Length on a streamed response.
       var TOTAL = MANIFEST.data.bytes + MANIFEST.framework.bytes + MANIFEST.code.bytes;
       var downloaded = 0;
+      var lastReport = -100;
+      var loadFailed = false, downloadController;
 
       function report(label) {
+        if (loadFailed) return;
+        var now = performance.now();
+        if (downloaded < TOTAL && now - lastReport < 80) return;
+        lastReport = now;
         bar.style.display = "block";
         var pct = TOTAL ? downloaded / TOTAL : 0;
         barfill.style.width = (pct * 100).toFixed(1) + "%";
         window.peakHostProgress?.(pct * .8, "Descargando PEAK · " + Math.floor(pct * 100) + "%");
-        setMsg("Descargando " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
+        setMsg("Cargando archivos · " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
                " MB (" + Math.floor(pct * 100) + "%)");
       }
 
-      var downloadFile;
       async function assemble(entry, label) {
         var urls = entry.parts || [entry.file];
-        var buffers = [];
-        for (var i = 0; i < urls.length; i++) {
-          var url = new URL(urls[i], entry.local ? new URL("Build/", location.href).href : BUILD).href;
-          var sources = entry.local ? [url] : [url, new URL(urls[i], BUILD_FALLBACK).href];
+        var buffers = await mapConcurrent(urls, async function (file, i, signal) {
+          var url = new URL(file, entry.local ? new URL("Build/", location.href).href : BUILD).href;
+          var sources = entry.local ? [url] : [url, new URL(file, BUILD_FALLBACK).href];
           var expected = entry.parts ? Math.min(entry.partBytes, entry.bytes - i * entry.partBytes) : entry.bytes;
-          buffers.push(await downloadFile(sources, {
+          return downloadFile(sources, {
             expectedBytes: expected,
+            cacheName: "peak-game-files-v1", signal: signal,
             onBytes: function (bytes) { downloaded += bytes; report(label); },
             onRetry: function (file, attempt) { setMsg("Reintentando " + file + " · intento " + attempt + " de 3…"); }
-          }));
-        }
+          });
+        }, 4, downloadController.signal);
         if (entry.gzip) {
           if (typeof DecompressionStream !== "function") throw new Error("Actualiza tu navegador para cargar PEAK.");
           var inflated = new Blob(buffers).stream().pipeThrough(new DecompressionStream("gzip"));
@@ -207,6 +322,10 @@
 
       (async function () {
         try {
+          // Deferred bridge scripts download together and execute in dependency order.
+          if (document.readyState === 'loading') await new Promise(function (resolve) {
+            document.addEventListener('DOMContentLoaded', resolve, { once: true });
+          });
           var required = { 'host.js': window.peakHostProgress, 'native-client.js': window.createPeakNativeClient,
             'room-controller.js': window.PeakRooms, 'socket-bridge.js': window.peakSocketBridge,
             'voice-bridge.js': window.peakVoiceBridge };
@@ -214,10 +333,13 @@
           if (missing.length || window.peakAssetErrors.length) {
             throw new Error("No se pudieron cargar los scripts de PEAK: " + (missing.join(', ') || window.peakAssetErrors.map(function (url) { return new URL(url).pathname.split('/').pop(); }).join(', ')) + ". Recarga para reintentar.");
           }
-          downloadFile = (await import("https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/download.mjs")).downloadFile;
-          var dataUrl      = await assemble(MANIFEST.data, "game data");
-          var frameworkUrl = await assemble(MANIFEST.framework, "framework");
-          var codeUrl      = await assemble(MANIFEST.code, "code");
+          downloadController = new AbortController();
+          var assets = await Promise.all([
+            assemble(MANIFEST.data, "datos del juego"),
+            assemble(MANIFEST.framework, "motor"),
+            assemble(MANIFEST.code, "código")
+          ]);
+          var dataUrl = assets[0], frameworkUrl = assets[1], codeUrl = assets[2];
 
           setMsg("Iniciando PEAK…");
           window.peakHostProgress(.8, "Iniciando PEAK…");
@@ -258,6 +380,7 @@
           script.onerror = function () { showFailure(new Error("No se pudo cargar WebGL.loader.js desde el CDN.")); };
           document.body.appendChild(script);
         } catch (e) {
+          downloadController?.abort(e);
           showFailure(e);
         }
       })();
