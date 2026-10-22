@@ -18,7 +18,7 @@
              display: none; }
       #barfill { width: 0%; height: 100%; background: #7cc242; }
       #msg { color: #bbb; font: 13px/1.5 system-ui, sans-serif; margin-top: 10px;
-             text-align: center; }
+             text-align: center; max-width: 90vw; overflow-wrap: anywhere; }
       #credit { position: fixed; right: 10px; bottom: 8px; z-index: 10;
                 color: #8a8a8a; font: 12px/1.4 system-ui, sans-serif;
                 text-align: right; pointer-events: auto; }
@@ -30,15 +30,21 @@
             font: 12px/1 system-ui, sans-serif; }
       #fs:hover { background: rgba(255,255,255,0.18); }
     </style>
-  <link rel="stylesheet" href="experimental/host.css">
-<script src="experimental/socket-bridge.js?v=a7c5023c8cc8"></script>
-<script src="experimental/voice-pump.js?v=24e8e314740b"></script>
-<script src="experimental/voice-output.js?v=718b15464b7d"></script>
-<script src="experimental/voice-bridge.js?v=732cafc2d133"></script>
-<script src="experimental/room-controller.js"></script>
-<script src="experimental/native-client.js"></script>
-<script src="experimental/host.js"></script>
-<script type="module" src="experimental/static-entry.mjs"></script>
+  <script>
+    window.peakAssetErrors = [];
+    window.addEventListener('error', function (event) {
+      if (event.target && event.target.tagName === 'SCRIPT') window.peakAssetErrors.push(event.target.src);
+    }, true);
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.css">
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/socket-bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-pump.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-output.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/voice-bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/room-controller.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/native-client.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/host.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/static-entry.mjs"></script>
 <style>
       .peak-static-page #host-form,.peak-static-page #host-room,.peak-static-page #host-open-game,
       .peak-static-page #host-switch-mode,.peak-static-page .host-server-info{display:none!important}
@@ -117,17 +123,18 @@
       "WebGL.data.unityweb.part011",
       "WebGL.data.unityweb.part012"
     ],
-    "bytes": 241608952
+    "bytes": 241608952,
+    "partBytes": 19000000
   },
   "code": {
-    "file": "../experimental/PEAK.voice.wasm.unityweb?v=7afb4a59ad9d",
+    "file": "https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/PEAK.voice.wasm.unityweb",
     "bytes": 18604141,
     "local": true,
     "gzip": true
   },
   "framework": {
-    "file": "../experimental/PEAK.voice.framework.js?v=ed203a9e9fb0",
-    "bytes": 533482,
+    "file": "https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/experimental/PEAK.voice.framework.js",
+    "bytes": 533460,
     "local": true
   },
   "loader": {
@@ -136,9 +143,10 @@
   }
 };
       var BUILD = "https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@f1924c4fcd0099172f50f8d2a5273fda12fa1444/Build/";
+      var BUILD_FALLBACK = "https://raw.githubusercontent.com/wasmdotrip/Peak-Port/f1924c4fcd0099172f50f8d2a5273fda12fa1444/Build/";
       // Point the C# level streamer at this copy, including when hosted in a subfolder.
       // Original data, StreamingAssets and LevelBundles come from the pinned CDN.
-      // The patched code and networking scripts stay on this host.
+      // The patched code and networking scripts use their own pinned CDN release.
       var CDN_BASE = "https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@f1924c4fcd0099172f50f8d2a5273fda12fa1444";
       if (CDN_BASE) {
         var u = new URL(window.location.href);
@@ -155,6 +163,11 @@
 
       function setMsg(t) { msg.textContent = t; }
       function mb(bytes) { return (bytes / 1048576).toFixed(1); }
+      function showFailure(error) {
+        console.error('[PEAK loader]', error);
+        try { window.peakHostFailure?.(error); } catch (reportError) { console.error(reportError); }
+        setMsg(error.message || String(error));
+      }
 
       // Total download size, measured at package time — no HEAD requests needed, and it
       // stays correct even if the CDN omits Content-Length on a streamed response.
@@ -165,38 +178,24 @@
         bar.style.display = "block";
         var pct = TOTAL ? downloaded / TOTAL : 0;
         barfill.style.width = (pct * 100).toFixed(1) + "%";
-        window.peakHostProgress(pct * .8, "Descargando PEAK · " + Math.floor(pct * 100) + "%");
+        window.peakHostProgress?.(pct * .8, "Descargando PEAK · " + Math.floor(pct * 100) + "%");
         setMsg("Descargando " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
                " MB (" + Math.floor(pct * 100) + "%)");
       }
 
-      // Fetch every part and glue them into one Blob, then expose it as a blob: URL.
-      // Unity's loader treats it like any other URL, so splitting stays invisible to it.
-      // The body is read through a stream reader so the byte counter moves continuously
-      // instead of jumping once per completed part.
+      var downloadFile;
       async function assemble(entry, label) {
         var urls = entry.parts || [entry.file];
         var buffers = [];
         for (var i = 0; i < urls.length; i++) {
           var url = new URL(urls[i], entry.local ? new URL("Build/", location.href).href : BUILD).href;
-          var res = await fetch(url);
-          if (!res.ok) throw new Error("failed to fetch " + url + " (" + res.status + ")");
-          if (res.body && res.body.getReader) {
-            var reader = res.body.getReader();
-            while (true) {
-              var step = await reader.read();
-              if (step.done) break;
-              buffers.push(step.value);
-              downloaded += step.value.byteLength;
-              report(label);
-            }
-          } else {
-            // no streaming support: fall back to whole-part reads
-            var buf = await res.arrayBuffer();
-            buffers.push(buf);
-            downloaded += buf.byteLength;
-            report(label);
-          }
+          var sources = entry.local ? [url] : [url, new URL(urls[i], BUILD_FALLBACK).href];
+          var expected = entry.parts ? Math.min(entry.partBytes, entry.bytes - i * entry.partBytes) : entry.bytes;
+          buffers.push(await downloadFile(sources, {
+            expectedBytes: expected,
+            onBytes: function (bytes) { downloaded += bytes; report(label); },
+            onRetry: function (file, attempt) { setMsg("Reintentando " + file + " · intento " + attempt + " de 3…"); }
+          }));
         }
         if (entry.gzip) {
           if (typeof DecompressionStream !== "function") throw new Error("Actualiza tu navegador para cargar PEAK.");
@@ -208,6 +207,14 @@
 
       (async function () {
         try {
+          var required = { 'host.js': window.peakHostProgress, 'native-client.js': window.createPeakNativeClient,
+            'room-controller.js': window.PeakRooms, 'socket-bridge.js': window.peakSocketBridge,
+            'voice-bridge.js': window.peakVoiceBridge };
+          var missing = Object.keys(required).filter(function (name) { return !required[name]; });
+          if (missing.length || window.peakAssetErrors.length) {
+            throw new Error("No se pudieron cargar los scripts de PEAK: " + (missing.join(', ') || window.peakAssetErrors.map(function (url) { return new URL(url).pathname.split('/').pop(); }).join(', ')) + ". Recarga para reintentar.");
+          }
+          downloadFile = (await import("https://cdn.jsdelivr.net/gh/xXROCHETXx/peak-online@web-v2/site/download.mjs")).downloadFile;
           var dataUrl      = await assemble(MANIFEST.data, "game data");
           var frameworkUrl = await assemble(MANIFEST.framework, "framework");
           var codeUrl      = await assemble(MANIFEST.code, "code");
@@ -216,21 +223,22 @@
           window.peakHostProgress(.8, "Iniciando PEAK…");
           var script = document.createElement("script");
           script.src = new URL(MANIFEST.loader.file, BUILD).href;
-          script.onload = function () {
-            createUnityInstance(canvas, {
-              dataUrl: dataUrl,
-              frameworkUrl: frameworkUrl,
-              codeUrl: codeUrl,
-              streamingAssetsUrl: CDN_BASE + "/StreamingAssets",
-              companyName: "Aggro Crab & Landfall",
-              productName: "PEAK",
-              productVersion: "1.62.a",
-            }, function (p) {
-              bar.style.display = "block";
-              barfill.style.width = Math.round(p * 100) + "%";
-              setMsg("Cargando… " + Math.round(p * 100) + "%");
-              window.peakHostProgress(.8 + p * .2, "Cargando PEAK · " + Math.round(p * 100) + "%");
-            }).then(function (instance) {
+          script.onload = async function () {
+            try {
+              var instance = await createUnityInstance(canvas, {
+                dataUrl: dataUrl,
+                frameworkUrl: frameworkUrl,
+                codeUrl: codeUrl,
+                streamingAssetsUrl: CDN_BASE + "/StreamingAssets",
+                companyName: "Aggro Crab & Landfall",
+                productName: "PEAK",
+                productVersion: "1.62.a",
+              }, function (p) {
+                bar.style.display = "block";
+                barfill.style.width = Math.round(p * 100) + "%";
+                setMsg("Cargando… " + Math.round(p * 100) + "%");
+                window.peakHostProgress(.8 + p * .2, "Cargando PEAK · " + Math.round(p * 100) + "%");
+              });
               window.unityInstance = instance;
               window.peakHostReady(instance);
               window.peakHostProgress(1, "Preparando el menú de PEAK…");
@@ -245,14 +253,12 @@
                 else if (canvas.requestFullscreen) canvas.requestFullscreen();
                 canvas.focus();
               };
-            }).catch(function (e) {
-              window.peakHostFailure(e); setMsg("No se pudo iniciar PEAK.");
-            });
+            } catch (e) { showFailure(new Error("No se pudo iniciar PEAK: " + (e.message || e))); }
           };
-          script.onerror = function () { window.peakHostFailure("No se pudo cargar " + script.src); setMsg("No se pudo cargar el juego."); };
+          script.onerror = function () { showFailure(new Error("No se pudo cargar WebGL.loader.js desde el CDN.")); };
           document.body.appendChild(script);
         } catch (e) {
-          window.peakHostFailure(e); setMsg("No se pudo descargar PEAK. Revisa la conexión con el servidor.");
+          showFailure(e);
         }
       })();
     </script>

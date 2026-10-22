@@ -2,7 +2,7 @@
 
 Este repositorio publica el cliente web de PEAK. La entrada abre el juego directamente, sin una página de instalación.
 
-Enlace de la versión web: https://rawcdn.githack.com/xXROCHETXx/peak-online/web-v1/site/index.html
+Enlace de la versión web: https://rawcdn.githack.com/xXROCHETXx/peak-online/web-v2/site/index.html
 
 Este enlace sirve los archivos estáticos del repositorio mediante el CDN de rawgit.hack. El servicio puede mostrar una confirmación inicial antes de abrir el HTML. No requiere instalar el iniciador ni iniciar sesión para cargar el cliente web.
 
@@ -10,7 +10,9 @@ URL prevista de GitHub Pages: https://xxrochetxx.github.io/peak-online/
 
 ## Publicación
 
-La carpeta `site/` contiene el HTML, JavaScript, estilos y WebAssembly que usa el navegador. El workflow publica únicamente esa carpeta. Los datos originales y los niveles se cargan desde el CDN del port original, fijados a la revisión `f1924c4fcd0099172f50f8d2a5273fda12fa1444`. El cliente modificado está comprimido; la página lo descomprime antes de iniciar Unity.
+La carpeta `site/` contiene el HTML, JavaScript, estilos y WebAssembly que usa el navegador. El workflow publica únicamente esa carpeta. Los HTML se sirven desde rawgit.hack y los scripts, estilos y cliente modificado desde jsDelivr, fijados a la etiqueta `web-v2`. Así se evita depender de las respuestas 403 observadas al solicitar scripts al alojamiento del HTML. Los datos originales y los niveles se cargan desde el CDN del port original, fijados a la revisión `f1924c4fcd0099172f50f8d2a5273fda12fa1444`. El cliente modificado está comprimido; la página lo descomprime antes de iniciar Unity.
+
+El cargador comprueba que los scripts se hayan inicializado antes de descargar los datos, reintenta descargas interrumpidas sin duplicar bytes y dispone de una fuente alternativa de la misma revisión para los datos originales. Los errores indican el archivo que falla. Las respuestas de acceso denegado o límite de peticiones detienen los reintentos.
 
 Se sigue el esquema de [los ports de Dasher](https://github.com/dashiellbenton/ports/blob/main/.github/workflows/static.yml) y de [PEAK en wasm.rip](https://github.com/wasmdotrip/wasm.rip/blob/main/files/peak/PEAK.html): una web estática y archivos del juego en un CDN.
 

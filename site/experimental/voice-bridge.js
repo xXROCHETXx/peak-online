@@ -1,10 +1,11 @@
 /* Browser audio adapter for the pinned PEAK/Photon Voice build. */
 (() => {
   'use strict';
+  const assetBase = new URL('./', document.currentScript.src);
   const encoders = new Map(), decoders = new Map(), recorders = new Set(), speakers = new Set();
   const ring = new Float32Array(9600); // at most 200 ms when the tab stalls
   const voiceTest = new URLSearchParams(location.search).has('voicetest');
-  const output = new PeakVoiceOutput({ meterModule: voiceTest ? 'experimental/voice-continuity-meter.js' : null, trace: voiceTest });
+  const output = new PeakVoiceOutput({ meterModule: voiceTest ? new URL('voice-continuity-meter.js', assetBase).href : null, trace: voiceTest });
   const pump = new PeakVoicePump(() => module);
   const wallNow = () => performance.timeOrigin + performance.now();
   const stats = { inputFrames: 0, nativeReads: 0, encodersCreated: 0, encodedFrames: 0,
@@ -217,7 +218,7 @@
         await devices();
       }
       if (token !== generation || !context) return;
-      await context.audioWorklet.addModule('experimental/mic-worklet.js');
+      await context.audioWorklet.addModule(new URL('mic-worklet.js', assetBase).href);
       if (token !== generation || !context) return;
       worklet = new AudioWorkletNode(context, 'peak-mic-frames');
       worklet.port.onmessage = e => { if (token === generation) enqueue(new Float32Array(e.data)); };
